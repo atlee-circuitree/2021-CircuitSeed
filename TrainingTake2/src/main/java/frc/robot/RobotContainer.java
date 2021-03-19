@@ -62,7 +62,7 @@ public class RobotContainer {
     driveForwardTimed = new DriveForwardTimed(driveTrain);
     driveForwardTimed.addRequirements(driveTrain);
 
-    encoderDrive = new EncoderDrive(48, 0.5, driveTrain);
+    encoderDrive = new EncoderDrive(60, 0.5, driveTrain);
     encoderDrive.addRequirements(driveTrain);
     
     //Other command setup

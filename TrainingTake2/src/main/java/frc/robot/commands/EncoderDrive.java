@@ -7,6 +7,7 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.CommandBase;
+import frc.robot.Constants;
 import frc.robot.subsystems.DriveTrain;
 
 public class EncoderDrive extends CommandBase {
@@ -14,7 +15,7 @@ public class EncoderDrive extends CommandBase {
   double target = 0;
   double speed;
   DriveTrain driveTrain;
-  double encoderCountsPerInch = (42 * 10.71) / (6 * 3.1415926535);
+  double encoderCountsPerInch = (Constants.encoderPPRMod * 10.71) / (6 * Math.PI);
   Boolean finished = false;
   int PROBLEMCHILD = 0;
 

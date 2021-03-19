@@ -14,6 +14,7 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 
 public class DriveTrain extends SubsystemBase {
   
@@ -33,7 +34,7 @@ public class DriveTrain extends SubsystemBase {
     leftEncoder = leftMotor.getEncoder(EncoderType.kHallSensor, 4096);
     rightEncoder = rightMotor.getEncoder(EncoderType.kHallSensor, 4096);
 
-    leftEncoder.setPositionConversionFactor(42);
+    leftEncoder.setPositionConversionFactor(Constants.encoderPPRMod);
     
     drive = new DifferentialDrive(leftMotor, rightMotor);
   }
