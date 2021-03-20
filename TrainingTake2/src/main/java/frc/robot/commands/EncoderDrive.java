@@ -17,7 +17,6 @@ public class EncoderDrive extends CommandBase {
   DriveTrain driveTrain;
   double encoderCountsPerInch = (Constants.encoderPPRMod * 10.71) / (6 * Math.PI);
   Boolean finished = false;
-  int PROBLEMCHILD = 0;
 
 
   public EncoderDrive(double inches, double driveSpeed, DriveTrain dt) {
@@ -36,12 +35,6 @@ public class EncoderDrive extends CommandBase {
 
     System.out.println("Target");
     System.out.println(target);
-
-    System.out.println("Position Conversion Factor");
-    System.out.println(driveTrain.debugging());
-    
-
-
     
     finished = false;
   }
@@ -53,22 +46,10 @@ public class EncoderDrive extends CommandBase {
     
     if(target < 0 && driveTrain.getLeftEncoder() > target){
 
-      //System.out.println(driveTrain.getLeftEncoder());
       driveTrain.driveForward(-0.5);
 
     }
     else if(target > 0 && driveTrain.getLeftEncoder() < target){
-      
-      
-      //Debugging purposes ONLY
-      if(PROBLEMCHILD < 50){
-        PROBLEMCHILD++;
-      }
-      else{
-        System.out.println(driveTrain.getLeftEncoder());
-        PROBLEMCHILD = 0;
-      }
-
 
       driveTrain.driveForward(0.5);
       
@@ -77,17 +58,6 @@ public class EncoderDrive extends CommandBase {
       driveTrain.stop();
       finished = true;
     }
-    /*
-    driveTrain.driveForward(0.5);
-
-    if(PROBLEMCHILD < 50){
-      PROBLEMCHILD++;
-    }
-    else{
-      System.out.println(driveTrain.getLeftEncoder());
-      PROBLEMCHILD = 0;
-    }
-    */
   }
 
   // Called once the command ends or is interrupted.

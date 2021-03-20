@@ -5,15 +5,16 @@
 package frc.robot;
 
 import edu.wpi.first.wpilibj.Joystick;
-//import frc.robot.commands.CutoffSolenoid;
 import frc.robot.commands.DriveForwardTimed;
 import frc.robot.commands.DriveWithJoystick;
 import frc.robot.commands.EncoderDrive;
 import frc.robot.commands.ExtendSolenoid;
 import frc.robot.commands.GetNavxValues;
 import frc.robot.commands.RetractSolenoid;
+import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.Stop;
 //import frc.robot.commands.ToggleSolenoid;
+//import frc.robot.commands.CutoffSolenoid;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.Pneumatics;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -35,11 +36,10 @@ public class RobotContainer {
   private final DriveForwardTimed driveForwardTimed;
   private final EncoderDrive encoderDrive;
   private final Stop stop;
-  //private final ToggleSolenoid toggleSolenoid;
   private final ExtendSolenoid extendSolenoid;
   private final RetractSolenoid retractSolenoid;
-  //private final CutoffSolenoid cutoffSolenoid;
   private final GetNavxValues getNavxValues;
+  private final RotateToAngle rotateToAngle;
 
   public static Joystick flightstick;
   public static JoystickButton flightstickTrigger;
@@ -67,12 +67,13 @@ public class RobotContainer {
 
     encoderDrive = new EncoderDrive(60, 0.5, driveTrain);
     encoderDrive.addRequirements(driveTrain);
+
+    rotateToAngle = new RotateToAngle(90, 0.5, 5.0, driveTrain);
+    rotateToAngle.addRequirements(driveTrain);
     
     //Other command setup
     pneumatics = new Pneumatics();
     stop = new Stop(driveTrain);
-    //toggleSolenoid = new ToggleSolenoid(pneumatics);
-    //cutoffSolenoid = new CutoffSolenoid(pneumatics);
     extendSolenoid = new ExtendSolenoid(pneumatics);
     retractSolenoid = new RetractSolenoid(pneumatics);
     getNavxValues = new GetNavxValues(driveTrain);
@@ -113,7 +114,7 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // An ExampleCommand will run in autonomous
-    return encoderDrive;
+    // The command to run in autonomous
+    return rotateToAngle;
   }
 }
