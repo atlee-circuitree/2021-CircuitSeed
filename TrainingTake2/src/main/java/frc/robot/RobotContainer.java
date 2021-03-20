@@ -10,6 +10,7 @@ import frc.robot.commands.DriveForwardTimed;
 import frc.robot.commands.DriveWithJoystick;
 import frc.robot.commands.EncoderDrive;
 import frc.robot.commands.ExtendSolenoid;
+import frc.robot.commands.GetNavxValues;
 import frc.robot.commands.RetractSolenoid;
 import frc.robot.commands.Stop;
 //import frc.robot.commands.ToggleSolenoid;
@@ -38,11 +39,13 @@ public class RobotContainer {
   private final ExtendSolenoid extendSolenoid;
   private final RetractSolenoid retractSolenoid;
   //private final CutoffSolenoid cutoffSolenoid;
-  
+  private final GetNavxValues getNavxValues;
+
   public static Joystick flightstick;
   public static JoystickButton flightstickTrigger;
   public static JoystickButton flightstickButton2;
   public static JoystickButton flightstickButton3;
+  public static JoystickButton flightstickButton11;
   
   public static Joystick flightstick2;
   public static JoystickButton flightstick2Trigger;
@@ -72,6 +75,7 @@ public class RobotContainer {
     //cutoffSolenoid = new CutoffSolenoid(pneumatics);
     extendSolenoid = new ExtendSolenoid(pneumatics);
     retractSolenoid = new RetractSolenoid(pneumatics);
+    getNavxValues = new GetNavxValues(driveTrain);
 
     
     
@@ -88,6 +92,7 @@ public class RobotContainer {
     flightstickTrigger = new JoystickButton(flightstick, 1);
     flightstickButton2 = new JoystickButton(flightstick, 2);
     flightstickButton3 = new JoystickButton(flightstick, 3);
+    flightstickButton11 = new JoystickButton(flightstick, 11);
 
     //Flightstick 2
     flightstick2 = new Joystick(1);
@@ -99,6 +104,7 @@ public class RobotContainer {
     flightstick2Button2.whileHeld(stop);
     flightstickButton2.whenPressed(extendSolenoid);
     flightstickButton3.whenPressed(retractSolenoid);
+    flightstickButton11.whenPressed(getNavxValues);
   }
 
   /**

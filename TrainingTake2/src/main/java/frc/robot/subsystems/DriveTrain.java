@@ -12,9 +12,12 @@ import com.revrobotics.EncoderType;
 import com.revrobotics.CANSparkMax.IdleMode;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+
+import com.kauailabs.navx.frc.AHRS;
 
 public class DriveTrain extends SubsystemBase {
   
@@ -22,6 +25,7 @@ public class DriveTrain extends SubsystemBase {
   CANSparkMax rightMotor;
   CANEncoder leftEncoder;
   CANEncoder rightEncoder;
+  AHRS ahrs; 
     
   DifferentialDrive drive;
   
@@ -35,6 +39,8 @@ public class DriveTrain extends SubsystemBase {
     rightEncoder = rightMotor.getEncoder(EncoderType.kHallSensor, 4096);
 
     leftEncoder.setPositionConversionFactor(Constants.encoderPPRMod);
+
+    ahrs = new AHRS(SPI.Port.kMXP);
     
     drive = new DifferentialDrive(leftMotor, rightMotor);
   }
@@ -68,4 +74,16 @@ public class DriveTrain extends SubsystemBase {
     leftEncoder.setPosition(0);
     rightEncoder.setPosition(0);
   }
+
+  //NAVX Functions
+  public double getNavxYaw(){
+    return ahrs.getYaw();
+  }
+  public double getNavxRoll(){
+    return ahrs.getRoll();
+  }
+  public double getNavxPitch(){
+    return ahrs.getPitch();
+  }
+
 }

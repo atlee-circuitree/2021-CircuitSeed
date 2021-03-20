@@ -26,12 +26,15 @@ public class DriveWithJoystick extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    //Fast mode
     if(RobotContainer.flightstickTrigger.get()){
       driveTrain.driveWithJoystick(1, RobotContainer.flightstick, RobotContainer.flightstick2);
     }
+    //Slow mode
     else if(RobotContainer.flightstick2Trigger.get()){
       driveTrain.driveWithJoystick(0.5, RobotContainer.flightstick, RobotContainer.flightstick2);
     }
+    //Normal mode
     else{
       driveTrain.driveWithJoystick(0.75, RobotContainer.flightstick, RobotContainer.flightstick2);
     }
