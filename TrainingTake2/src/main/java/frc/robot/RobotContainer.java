@@ -10,6 +10,7 @@ import frc.robot.commands.DriveWithJoystick;
 import frc.robot.commands.EncoderDrive;
 import frc.robot.commands.ExtendSolenoid;
 import frc.robot.commands.GetNavxValues;
+import frc.robot.commands.Pathweaver;
 import frc.robot.commands.RetractSolenoid;
 import frc.robot.commands.RotateToAngle;
 import frc.robot.commands.Stop;
@@ -35,6 +36,7 @@ public class RobotContainer {
   private final DriveWithJoystick driveWithJoystick;
   private final DriveForwardTimed driveForwardTimed;
   private final EncoderDrive encoderDrive;
+  private final Pathweaver pathweaver;
   private final Stop stop;
   private final ExtendSolenoid extendSolenoid;
   private final RetractSolenoid retractSolenoid;
@@ -62,14 +64,17 @@ public class RobotContainer {
     driveTrain.setDefaultCommand(driveWithJoystick);
 
     //Auto command setup
-    driveForwardTimed = new DriveForwardTimed(driveTrain);
+    driveForwardTimed = new DriveForwardTimed(1, 3, driveTrain);
     driveForwardTimed.addRequirements(driveTrain);
 
-    encoderDrive = new EncoderDrive(60, 0.5, driveTrain);
+    encoderDrive = new EncoderDrive(1, 0.5, driveTrain);
     encoderDrive.addRequirements(driveTrain);
 
-    rotateToAngle = new RotateToAngle(90, 0.5, 5.0, driveTrain);
+    rotateToAngle = new RotateToAngle(-90, 0.5, 5.0, driveTrain);
     rotateToAngle.addRequirements(driveTrain);
+
+    pathweaver = new Pathweaver(driveTrain);
+    pathweaver.addRequirements(driveTrain);
     
     //Other command setup
     pneumatics = new Pneumatics();
@@ -115,6 +120,6 @@ public class RobotContainer {
    */
   public Command getAutonomousCommand() {
     // The command to run in autonomous
-    return rotateToAngle;
+    return encoderDrive;
   }
 }

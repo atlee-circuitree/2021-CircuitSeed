@@ -15,6 +15,15 @@ package frc.robot;
 public final class Constants {
 
     //Actual sparkmax encoder is 42
-    public final static double encoderPPRMod = 100;
+    public final static double encoderPPRMod = 42;
+
+    public static final double ksVolts = 0.158;
+    public static final double kvVoltSecondsPerMeter = 2.8;
+    public static final double kaVoltSecondsSquaredPerMeter = 0.366;
+    
+    public static final double kRamseteB = 2;
+    public static final double kRamseteZeta = 0.7;
+
+    public static final double encoderCountsPerMeter = (Constants.encoderPPRMod * 10.71) / (0.1524 * Math.PI);
 
 }

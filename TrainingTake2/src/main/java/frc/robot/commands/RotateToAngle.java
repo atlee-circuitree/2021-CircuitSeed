@@ -21,7 +21,7 @@ public class RotateToAngle extends CommandBase {
 
   private static Timer timer;
   
-  public RotateToAngle(double targetAngle,double maxSpeed, double timeout, DriveTrain dt) {
+  public RotateToAngle(double targetAngle, double maxSpeed, double timeout, DriveTrain dt) {
     
     driveTrain = dt;
     timeoutSeconds = timeout;
@@ -49,6 +49,7 @@ public class RotateToAngle extends CommandBase {
   public void execute() {
 
     //Setting the range of the motor output values
+    //Minimum may differ by terrain, adjust as needed
     if(driveTrain.getPIDOutput() > 0){
       currentRotationRate = MathUtil.clamp(driveTrain.getPIDOutput(), 0.2, speed);
     }
@@ -60,7 +61,6 @@ public class RotateToAngle extends CommandBase {
     if(dsOutputDelay >= 25){
       dsOutputDelay = 0;
       System.out.println(driveTrain.getNavxAngle());
-      System.out.println(currentRotationRate);
     }
     else{
       dsOutputDelay++;

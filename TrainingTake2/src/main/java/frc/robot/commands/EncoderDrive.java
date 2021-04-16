@@ -15,13 +15,12 @@ public class EncoderDrive extends CommandBase {
   double target = 0;
   double speed;
   DriveTrain driveTrain;
-  double encoderCountsPerInch = (Constants.encoderPPRMod * 10.71) / (6 * Math.PI);
   Boolean finished = false;
 
 
   public EncoderDrive(double inches, double driveSpeed, DriveTrain dt) {
     
-    target = inches * encoderCountsPerInch;
+    target = inches * Constants.encoderCountsPerMeter;
     speed = driveSpeed;
     driveTrain = dt;
     addRequirements(driveTrain);

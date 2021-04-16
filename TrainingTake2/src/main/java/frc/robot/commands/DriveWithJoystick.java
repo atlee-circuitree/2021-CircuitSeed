@@ -11,6 +11,7 @@ import frc.robot.subsystems.DriveTrain;
 public class DriveWithJoystick extends CommandBase {
   
   private final DriveTrain driveTrain;
+  private static double dsOutputDelay = 0;
 
   public DriveWithJoystick(DriveTrain dt) {
     // Use addRequirements() here to declare subsystem dependencies.
@@ -26,6 +27,17 @@ public class DriveWithJoystick extends CommandBase {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+
+    //Print values to screen
+    if(dsOutputDelay >= 200){
+      dsOutputDelay = 0;
+      //Print whatever here
+    }
+    else{
+      dsOutputDelay++;
+    }
+
+
     //Fast mode
     if(RobotContainer.flightstickTrigger.get()){
       driveTrain.driveWithJoystick(1, RobotContainer.flightstick, RobotContainer.flightstick2);

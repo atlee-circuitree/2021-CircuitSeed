@@ -4,6 +4,9 @@
 
 //CountsPerInch = (CountsPerPulse * GearReduction) / (WheelDiameter * PI)
 
+//Velocity
+//MAX Velocity (Full power)
+
 package frc.robot.subsystems;
 
 import com.revrobotics.CANEncoder;
@@ -14,7 +17,15 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveKinematics;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.wpilibj.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 
@@ -28,18 +39,32 @@ public class DriveTrain extends SubsystemBase {
   CANEncoder leftEncoder;
   CANEncoder rightEncoder;
   DifferentialDrive drive;
+
+  TrajectoryConfig trajectoryConfig;
+  Trajectory trajectory;
   
   //NavX variables
   AHRS ahrs; 
   PIDController turnController;
   
-  static final double kP = 0.03;
+  //CHANGED kP 4/1 FROM 0.03 to 2.28
+  //Based on characterization data, dunno if this will break anything
+  static final double kP = 2.28;
   static final double kI = 0.00;
   static final double kD = 0.00;
   static final double kF = 0.00;
   static final double kToleranceDegrees = 2.0f;
 
-  
+  //Trajectory variables
+  DifferentialDriveOdometry odometry;
+
+  SimpleMotorFeedforward feedForward;
+
+  PIDController leftPIDController;
+  PIDController rightPIDController;
+
+  DifferentialDriveKinematics kinematics;
+
   
   public DriveTrain() {
     //Drivetrain initialization
@@ -52,21 +77,41 @@ public class DriveTrain extends SubsystemBase {
     rightEncoder = rightMotor.getEncoder(EncoderType.kHallSensor, 4096);
 
     leftEncoder.setPositionConversionFactor(Constants.encoderPPRMod);
+    rightEncoder.setPositionConversionFactor(Constants.encoderPPRMod);
+
+    leftEncoder.setPosition(0);
+    rightEncoder.setPosition(0);
 
     drive = new DifferentialDrive(leftMotor, rightMotor);
 
     //NavX initialization
     ahrs = new AHRS(SPI.Port.kMXP);
+    ahrs.reset();
 
     turnController = new PIDController(kP, kI, kD);
     turnController.enableContinuousInput(-180.0f, 180.0f);
+
+    //Trajectory initializaiton
+    odometry = new DifferentialDriveOdometry(ahrs.getRotation2d());
+
+    feedForward = new SimpleMotorFeedforward(0.158, 2.8);
     
+    leftPIDController = new PIDController(kP, kI, kD);
+    rightPIDController = new PIDController(kP, kI, kD);
+    
+    //Double check trackWidth value (in Meters)
+    kinematics = new DifferentialDriveKinematics(0.53975);
+
   }
 
   @Override
   public void periodic() {
-    // This method will be called once per scheduler run
+    // Update the odometry in the periodic block
+    odometry.update(
+        ahrs.getRotation2d(), getEncoderMeters(leftEncoder), getEncoderMeters(rightEncoder));
   }
+
+  //DRIVE Functions
   public void driveWithJoystick(double speed, Joystick joystick, Joystick joystick2){
     drive.arcadeDrive(-joystick.getY()*speed, joystick2.getX()*speed, true);
   }
@@ -84,6 +129,10 @@ public class DriveTrain extends SubsystemBase {
   }
   public double getRightEncoder(){
     return rightEncoder.getPosition();
+  }
+
+  public double getEncoderMeters(CANEncoder encoder){
+    return encoder.getPosition() / Constants.encoderCountsPerMeter;
   }
 
 
@@ -107,6 +156,15 @@ public class DriveTrain extends SubsystemBase {
   public double getNavxAngle(){
     return ahrs.getAngle();
   }
+  public double getNavxVelocityX(){
+    return ahrs.getVelocityX();
+  }
+  public double getNavxVelocityY(){
+    return ahrs.getVelocityY();
+  }
+  public double getNavxVelocityZ(){
+    return ahrs.getVelocityZ();
+  }
 
   public double getPIDOutput(){
     return turnController.calculate(ahrs.getAngle());
@@ -117,5 +175,35 @@ public class DriveTrain extends SubsystemBase {
   public void setPIDTarget(double setpoint){
     turnController.setSetpoint(setpoint);
   }
+
+  //TRAJECTORY Functions
+  
+  public void setSpeeds(DifferentialDriveWheelSpeeds speeds) {
+    final double leftFeedforward = feedForward.calculate(speeds.leftMetersPerSecond);
+    final double rightFeedforward = feedForward.calculate(speeds.rightMetersPerSecond);
+
+    final double leftOutput = leftPIDController.calculate(rightEncoder.getVelocity(), speeds.leftMetersPerSecond);
+    final double rightOutput = rightPIDController.calculate(rightEncoder.getVelocity(), speeds.rightMetersPerSecond);
+    leftMotor.setVoltage(leftOutput + leftFeedforward);
+    rightMotor.setVoltage(rightOutput + rightFeedforward);
+  }
+
+  public void drive(double xSpeed, double rot) {
+    DifferentialDriveWheelSpeeds wheelSpeeds = kinematics.toWheelSpeeds(new ChassisSpeeds(xSpeed, 0.0, rot));
+    setSpeeds(wheelSpeeds);
+  }
+
+  public void updateOdometry() {
+    odometry.update(ahrs.getRotation2d(), getEncoderMeters(leftEncoder), getEncoderMeters(rightEncoder));
+  }
+  
+  public void resetOdometry(Pose2d pose) {
+    odometry.resetPosition(pose, ahrs.getRotation2d());
+  }
+
+  public Pose2d getPose() {
+    return odometry.getPoseMeters();
+  }
+
 
 }
