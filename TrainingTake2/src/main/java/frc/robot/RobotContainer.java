@@ -4,7 +4,20 @@
 
 package frc.robot;
 
+import java.io.IOException;
+import java.nio.file.Path;
+
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.controller.PIDController;
+import edu.wpi.first.wpilibj.controller.RamseteController;
+import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
+import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
+import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
 import frc.robot.commands.DriveForwardTimed;
 import frc.robot.commands.DriveWithJoystick;
 import frc.robot.commands.EncoderDrive;
@@ -19,6 +32,7 @@ import frc.robot.commands.Stop;
 import frc.robot.subsystems.DriveTrain;
 import frc.robot.subsystems.Pneumatics;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RamseteCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 
 /**
@@ -42,6 +56,7 @@ public class RobotContainer {
   private final RetractSolenoid retractSolenoid;
   private final GetNavxValues getNavxValues;
   private final RotateToAngle rotateToAngle;
+  
 
   public static Joystick flightstick;
   public static JoystickButton flightstickTrigger;
@@ -52,6 +67,9 @@ public class RobotContainer {
   public static Joystick flightstick2;
   public static JoystickButton flightstick2Trigger;
   public static JoystickButton flightstick2Button2;
+
+  private Trajectory trajectory;
+  private String trajectoryJSON = "paths/Test2.wpilib.json";
 
   
 
@@ -84,6 +102,8 @@ public class RobotContainer {
     getNavxValues = new GetNavxValues(driveTrain);
 
     
+
+
     
     // Configure the button bindings
     configureButtonBindings();
@@ -119,7 +139,38 @@ public class RobotContainer {
    * @return the command to run in autonomous
    */
   public Command getAutonomousCommand() {
-    // The command to run in autonomous
-    return encoderDrive;
+
+    //The actual trajectory
+    try {
+      Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
+      trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
+    } catch(IOException ex) {
+      DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
+    }
+  
+
+    RamseteCommand ramseteCommand =
+        new RamseteCommand(
+            trajectory,
+            driveTrain::getPose,
+            new RamseteController(Constants.kRamseteB, Constants.kRamseteZeta),
+            new SimpleMotorFeedforward(
+                Constants.ksVolts,
+                Constants.kvVoltSecondsPerMeter,
+                Constants.kaVoltSecondsSquaredPerMeter),
+            Constants.kDriveKinematics,
+            driveTrain::getWheelSpeeds,
+            new PIDController(Constants.kPDriveVel, 0, 0),
+            new PIDController(Constants.kPDriveVel, 0, 0),
+            // RamseteCommand passes volts to the callback
+            driveTrain::tankDriveVolts,
+            driveTrain);
+
+    // Reset odometry to the starting pose of the trajectory.
+    driveTrain.resetOdometry(trajectory.getInitialPose());
+
+    // Run path following command, then stop at the end.
+    return ramseteCommand.andThen(() -> driveTrain.tankDriveVolts(0, 0));
+
   }
 }

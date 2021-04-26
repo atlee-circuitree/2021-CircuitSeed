@@ -21,7 +21,7 @@ public class Pathweaver extends CommandBase {
   private final DriveTrain driveTrain;
   private Boolean finished = false;
 
-  String trajectoryJSON = "paths/Test1.wpilib.json";
+  String trajectoryJSON = "paths/Test2.wpilib.json";
   Trajectory trajectory = new Trajectory();
 
   RamseteController ramseteController = new RamseteController();

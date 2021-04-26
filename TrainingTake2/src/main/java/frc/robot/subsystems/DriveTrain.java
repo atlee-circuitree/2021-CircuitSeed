@@ -47,9 +47,9 @@ public class DriveTrain extends SubsystemBase {
   AHRS ahrs; 
   PIDController turnController;
   
-  //CHANGED kP 4/1 FROM 0.03 to 2.28
-  //Based on characterization data, dunno if this will break anything
-  static final double kP = 2.28;
+  //CHANGED kP 4/23 FROM 2.28 to 0.02
+  //Based on characterization data
+  static final double kP = 0.02;
   static final double kI = 0.00;
   static final double kD = 0.00;
   static final double kF = 0.00;
@@ -79,6 +79,9 @@ public class DriveTrain extends SubsystemBase {
     leftEncoder.setPositionConversionFactor(Constants.encoderPPRMod);
     rightEncoder.setPositionConversionFactor(Constants.encoderPPRMod);
 
+    leftEncoder.setVelocityConversionFactor(Constants.encoderVelocityMod);
+    rightEncoder.setVelocityConversionFactor(Constants.encoderVelocityMod);
+
     leftEncoder.setPosition(0);
     rightEncoder.setPosition(0);
 
@@ -107,8 +110,7 @@ public class DriveTrain extends SubsystemBase {
   @Override
   public void periodic() {
     // Update the odometry in the periodic block
-    odometry.update(
-        ahrs.getRotation2d(), getEncoderMeters(leftEncoder), getEncoderMeters(rightEncoder));
+    odometry.update(ahrs.getRotation2d(), getEncoderMeters(leftEncoder), getEncoderMeters(rightEncoder));
   }
 
   //DRIVE Functions
@@ -176,6 +178,16 @@ public class DriveTrain extends SubsystemBase {
     turnController.setSetpoint(setpoint);
   }
 
+  public void zeroHeading() {
+    ahrs.reset();
+  }
+  public double getHeading() {
+    return ahrs.getRotation2d().getDegrees();
+  }
+  public double getTurnRate() {
+    return -ahrs.getRate();
+  }
+
   //TRAJECTORY Functions
   
   public void setSpeeds(DifferentialDriveWheelSpeeds speeds) {
@@ -197,13 +209,29 @@ public class DriveTrain extends SubsystemBase {
     odometry.update(ahrs.getRotation2d(), getEncoderMeters(leftEncoder), getEncoderMeters(rightEncoder));
   }
   
-  public void resetOdometry(Pose2d pose) {
-    odometry.resetPosition(pose, ahrs.getRotation2d());
-  }
 
+  
   public Pose2d getPose() {
     return odometry.getPoseMeters();
   }
 
+  public DifferentialDriveWheelSpeeds getWheelSpeeds() {
+    return new DifferentialDriveWheelSpeeds(leftEncoder.getVelocity(), rightEncoder.getVelocity());
+  }
+
+  public void resetOdometry(Pose2d pose) {
+    resetEncoders();
+    odometry.resetPosition(pose, ahrs.getRotation2d());
+  }
+
+  public void tankDriveVolts(double leftVolts, double rightVolts) {
+    leftMotor.setVoltage(leftVolts);
+    rightMotor.setVoltage(-rightVolts);
+    drive.feed();
+  }
+
+  public void setMaxOutput(double maxOutput) {
+    drive.setMaxOutput(maxOutput);
+  }
 
 }
