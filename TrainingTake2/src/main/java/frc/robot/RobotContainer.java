@@ -4,20 +4,25 @@
 
 package frc.robot;
 
-import java.io.IOException;
-import java.nio.file.Path;
+//import java.io.IOException;
+//import java.nio.file.Path;
+import java.util.List;
 
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Filesystem;
+//import edu.wpi.first.wpilibj.DriverStation;
+//import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.controller.PIDController;
 import edu.wpi.first.wpilibj.controller.RamseteController;
 import edu.wpi.first.wpilibj.controller.SimpleMotorFeedforward;
+import edu.wpi.first.wpilibj.geometry.Pose2d;
+import edu.wpi.first.wpilibj.geometry.Rotation2d;
+import edu.wpi.first.wpilibj.geometry.Translation2d;
 import edu.wpi.first.wpilibj.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryConfig;
 import edu.wpi.first.wpilibj.trajectory.TrajectoryGenerator;
-import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
+//import edu.wpi.first.wpilibj.trajectory.TrajectoryUtil;
 import edu.wpi.first.wpilibj.trajectory.constraint.DifferentialDriveVoltageConstraint;
+//import edu.wpi.first.wpilibj.trajectory.constraint.TrajectoryConstraint;
 import frc.robot.commands.DriveForwardTimed;
 import frc.robot.commands.DriveWithJoystick;
 import frc.robot.commands.EncoderDrive;
@@ -68,8 +73,8 @@ public class RobotContainer {
   public static JoystickButton flightstick2Trigger;
   public static JoystickButton flightstick2Button2;
 
-  private Trajectory trajectory;
-  private String trajectoryJSON = "paths/Test2.wpilib.json";
+  //private Trajectory trajectory;
+  //private String trajectoryJSON = "paths/Test2.wpilib.json";
 
   
 
@@ -141,17 +146,53 @@ public class RobotContainer {
   public Command getAutonomousCommand() {
 
     //The actual trajectory
+    /*
     try {
       Path trajectoryPath = Filesystem.getDeployDirectory().toPath().resolve(trajectoryJSON);
       trajectory = TrajectoryUtil.fromPathweaverJson(trajectoryPath);
     } catch(IOException ex) {
       DriverStation.reportError("Unable to open trajectory: " + trajectoryJSON, ex.getStackTrace());
     }
+    */
+
+    //EXAMPLE COMMAND FOR DEBUGGING PURPOSES ONLY
+    // Create a voltage constraint to ensure we don't accelerate too fast
+    var autoVoltageConstraint =
+        new DifferentialDriveVoltageConstraint(
+            new SimpleMotorFeedforward(
+                Constants.ksVolts,
+                Constants.kvVoltSecondsPerMeter,
+                Constants.kaVoltSecondsSquaredPerMeter),
+            Constants.kDriveKinematics,
+            10);
+
+    // Create config for trajectory
+    TrajectoryConfig config =
+        new TrajectoryConfig(
+                Constants.kMaxSpeedMetersPerSecond,
+                Constants.kMaxAccelerationMetersPerSecondSquared)
+            // Add kinematics to ensure max speed is actually obeyed
+            .setKinematics(Constants.kDriveKinematics)
+            // Apply the voltage constraint
+            .addConstraint(autoVoltageConstraint);
+
+    // An example trajectory to follow.  All units in meters.
+    Trajectory exampleTrajectory =
+        TrajectoryGenerator.generateTrajectory(
+            // Start at the origin facing the +X direction
+            new Pose2d(0, 0, new Rotation2d(0)),
+            // Pass through these two interior waypoints
+            List.of(new Translation2d(1, 0), new Translation2d(2, 0)),
+            // End 3 meters straight ahead of where we started, facing forward
+            new Pose2d(3, 0, new Rotation2d(0)),
+            // Pass config
+            config);
+    
   
 
     RamseteCommand ramseteCommand =
         new RamseteCommand(
-            trajectory,
+            exampleTrajectory,
             driveTrain::getPose,
             new RamseteController(Constants.kRamseteB, Constants.kRamseteZeta),
             new SimpleMotorFeedforward(
@@ -167,7 +208,14 @@ public class RobotContainer {
             driveTrain);
 
     // Reset odometry to the starting pose of the trajectory.
-    driveTrain.resetOdometry(trajectory.getInitialPose());
+    driveTrain.resetOdometry(exampleTrajectory.getInitialPose());
+
+    driveTrain.setMaxOutput(1);
+
+    System.out.print("trajectory.getInitialPose() = ");
+    System.out.println(exampleTrajectory.getInitialPose());
+    System.out.print("Robot's initial pose = ");
+    System.out.println(driveTrain.getPose());
 
     // Run path following command, then stop at the end.
     return ramseteCommand.andThen(() -> driveTrain.tankDriveVolts(0, 0));

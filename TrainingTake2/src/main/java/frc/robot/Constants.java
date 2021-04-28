@@ -31,7 +31,7 @@ public final class Constants {
     public static final double kRamseteB = 2;
     public static final double kRamseteZeta = 0.7;
 
-    public static final double kPDriveVel = 2.28;
+    public static final double kPDriveVel = 0.02;
 
     public static final double trackWidthMeters = 0.53975;
 

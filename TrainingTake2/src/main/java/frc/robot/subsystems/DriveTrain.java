@@ -65,6 +65,9 @@ public class DriveTrain extends SubsystemBase {
 
   DifferentialDriveKinematics kinematics;
 
+  //DEBUGGING
+  int debugging = 0;
+
   
   public DriveTrain() {
     //Drivetrain initialization
@@ -227,6 +230,22 @@ public class DriveTrain extends SubsystemBase {
   public void tankDriveVolts(double leftVolts, double rightVolts) {
     leftMotor.setVoltage(leftVolts);
     rightMotor.setVoltage(-rightVolts);
+
+    //DEBUGGING PURPOSES ONLY
+    if(debugging >= 50){
+      System.out.print("Left Volts: ");
+      System.out.println(leftVolts);
+      System.out.print("Right Volts: ");
+      System.out.println(rightVolts);
+      debugging = 0;
+    }
+    else if(leftVolts == 0 && rightVolts == 0){
+      System.out.println("FINAL POSE");
+      System.out.println(odometry.getPoseMeters());
+    }
+    else{
+      debugging++;
+    }
     drive.feed();
   }
 
